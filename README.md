@@ -6,6 +6,12 @@ Librería gratuita para ejecutar una prueba QPU fija y no ajustable, cifrar evid
 
 CSG se trata como un **módulo de atestación intercambiable y configurable**. Ed25519 es la implementación de firma por defecto de este prototipo, no una restricción arquitectónica: el contrato del módulo permite adaptar el mecanismo a cada usuario, organización o política de auditoría. La cobertura del sello y la cadena de eventos se definen mediante manifiesto, eventos firmados y validación independiente; se pueden ampliar según el perfil de auditoría requerido. La integración directa con la crate Rust de CSG debe probarse por separado antes de afirmar compatibilidad binaria o interoperabilidad con sellos generados por esa crate.
 
+## Ejecutar el notebook de prevalidación CPU
+
+Abre [`LIBEQG_FaseC_Prevalidacion_CPU.ipynb`](./LIBEQG_FaseC_Prevalidacion_CPU.ipynb) desde la raíz del repositorio y ejecuta las celdas en orden. El notebook instala las dependencias opcionales de prueba, Qiskit Aer y CUDA-Q, selecciona explícitamente el target CUDA-Q `qpp-cpu`, valida Bell y GHZ-3 con semillas fijas y escribe un reporte local `phase_c_cpu_report.json`. La prueba de D-Wave Leap no se invoca.
+
+En un entorno que ya tenga las dependencias, puedes desactivar la instalación en la celda correspondiente. Si CUDA-Q no puede instalarse o no dispone de `qpp-cpu`, la validación debe considerarse incompleta; no continúes a una QPU real.
+
 ## Fase C: prevalidación con simuladores de referencia
 
 Antes de consumir créditos de una QPU física, LIBEQG incorpora un contrato de prevalidación con tres referencias:
