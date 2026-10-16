@@ -11,3 +11,6 @@ build/
 *.key
 outputs/
 private/
+
+# Local-only Phase C simulator report
+phase_c_cpu_report.json
