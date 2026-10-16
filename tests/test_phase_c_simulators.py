@@ -95,4 +95,8 @@ def test_phase_c_06_dwave_leap_beta_bell_smoke():
     )
     result = future.result().result
     counts = result.get_counts()
+    # D-Wave's documented API returns a list of per-measurement count maps.
+    if isinstance(counts, list):
+        assert counts
+        counts = counts[0]
     assert counts and sum(counts.values()) > 0
