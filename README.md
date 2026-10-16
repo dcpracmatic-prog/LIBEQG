@@ -1,5 +1,7 @@
 # LIBEQG
 
+[![LIBEQG tests](https://github.com/dcpracmatic-prog/LIBEQG/actions/workflows/tests.yml/badge.svg)](https://github.com/dcpracmatic-prog/LIBEQG/actions/workflows/tests.yml)
+
 Librería gratuita para ejecutar una prueba QPU fija y no ajustable, cifrar evidencia localmente y actualizar un índice comparativo con una sola versión vigente por proveedor/servicio.
 
 ## Arquitectura de atestación
