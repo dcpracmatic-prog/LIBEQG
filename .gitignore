@@ -11,3 +11,5 @@ build/
 *.key
 outputs/
 private/
+reports/
+libeqg_cpu_validation.json

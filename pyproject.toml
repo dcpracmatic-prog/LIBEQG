@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "libeqg"
-version = "0.1.0"
+version = "0.2.0"
 description = "Prueba inmutable y comparador de proveedores QPU con evidencia cifrada y verificable"
 requires-python = ">=3.10"
 dependencies = ["cryptography>=42,<47"]
@@ -12,11 +12,16 @@ dependencies = ["cryptography>=42,<47"]
 [project.optional-dependencies]
 test = ["pytest>=8,<9"]
 phase-c-aer = ["qiskit>=1.2", "qiskit-aer>=0.15"]
-phase-c-cudaq = ["cuda-quantum"]
+phase-c-cudaq = ["cudaq"]
 phase-c-dwave = ["dwave-gate", "dwave-ocean-sdk"]
+cpu = ["qiskit>=1.2", "qiskit-aer>=0.15", "cudaq"]
+dev = ["pytest>=8,<9", "ruff>=0.6"]
 
 [project.scripts]
 libeqg = "libeqg.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
