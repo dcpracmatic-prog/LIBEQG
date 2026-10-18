@@ -48,7 +48,7 @@ def main() -> int:
 
     # CUDA-Q is platform/Python-version dependent. Try it separately so its failure does
     # not prevent the ordinary suite and Aer tests from running; validation will report BLOCKED.
-    cuda_install = run([python, "-m", "pip", "install", "cuda-quantum"])
+    cuda_install = run([python, "-m", "pip", "install", "cudaq"])
     if cuda_install:
         print(
             "\nAVISO: no se pudo instalar CUDA-Q en este entorno. "
