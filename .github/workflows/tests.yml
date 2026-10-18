@@ -45,6 +45,8 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - name: Upgrade pip for CUDA-Q wheels
+        run: python -m pip install --upgrade pip
       - name: Install CUDA-Q CPU test dependencies (cudaq)
         run: python -m pip install -e ".[test,phase-c-cudaq]"
       - name: Execute CUDA-Q qpp-cpu integration test
