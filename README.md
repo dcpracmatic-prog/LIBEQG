@@ -2,70 +2,81 @@
 
 [![LIBEQG tests](https://github.com/dcpracmatic-prog/LIBEQG/actions/workflows/tests.yml/badge.svg)](https://github.com/dcpracmatic-prog/LIBEQG/actions/workflows/tests.yml)
 
-Librería gratuita para ejecutar una prueba QPU fija y no ajustable, cifrar evidencia localmente y actualizar un índice comparativo con una sola versión vigente por proveedor/servicio.
+Librería gratuita para ejecutar una prueba QPU fija, comprobar referencias locales, cifrar evidencia y mantener un índice comparativo con una sola versión vigente por proveedor/servicio.
+
+## Inicio rápido: clonar y ejecutar una sola orden
+
+Requisito previo: Python 3.10 o posterior y conexión a Internet para descargar dependencias.
+
+```bash
+git clone https://github.com/dcpracmatic-prog/LIBEQG.git
+cd LIBEQG
+python scripts/validate.py
+```
+
+El script prepara automáticamente un entorno virtual local `.venv`, instala el paquete y las dependencias de prueba, ejecuta `pytest`, y lanza la prevalidación de Fase C. No requiere instalar manualmente la librería ni editar variables de configuración.
+
+- Qiskit Aer se ejecuta explícitamente en CPU.
+- CUDA-Q solicita el backend `qpp-cpu`.
+- Los circuitos Bell y GHZ-3 se comprueban con semillas deterministas, estados permitidos y tolerancias estadísticas.
+- Se genera `reports/phase-c-cpu-validation.json`.
+- El comando termina con código distinto de cero si las pruebas fallan o si un simulador obligatorio queda bloqueado.
+- D-Wave no se instala ni se conecta durante este flujo.
+
+**Nota sobre CUDA-Q:** su distribución depende de la plataforma y de la versión de Python. Si no se puede instalar en el sistema actual, el script continúa con las pruebas disponibles, informa CUDA-Q como `BLOCKED` y no declara la validación completa como aprobada. No se debe confundir `BLOCKED` con `PASS`.
+
+## Comandos después de instalar
+
+Para instalar el paquete y las pruebas base sin simuladores opcionales:
+
+```bash
+python -m pip install -e ".[test]"
+python -m pytest -v
+```
+
+Para ejecutar únicamente la prevalidación local, una vez instalados los extras CPU:
+
+```bash
+python -m pip install -e ".[test,cpu]"
+python -m libeqg validate --cpu --report reports/phase-c-cpu-validation.json
+```
+
+El comando de validación devuelve:
+- `0`: Aer y CUDA-Q ejecutaron y superaron las comprobaciones.
+- `2`: prevalidación no aprobada; revisa `BLOCKED` o `FAIL` en la salida y en el JSON.
 
 ## Arquitectura de atestación
 
-CSG se trata como un **módulo de atestación intercambiable y configurable**. Ed25519 es la implementación de firma por defecto de este prototipo, no una restricción arquitectónica: el contrato del módulo permite adaptar el mecanismo a cada usuario, organización o política de auditoría. La cobertura del sello y la cadena de eventos se definen mediante manifiesto, eventos firmados y validación independiente; se pueden ampliar según el perfil de auditoría requerido. La integración directa con la crate Rust de CSG debe probarse por separado antes de afirmar compatibilidad binaria o interoperabilidad con sellos generados por esa crate.
+CSG se trata como un **módulo de atestación intercambiable y configurable**. Ed25519 es la implementación de firma predeterminada del prototipo, no una restricción arquitectónica. La cobertura del sello y la cadena de eventos se especifican mediante manifiesto, eventos firmados y validación independiente. La interoperabilidad con la crate Rust de CSG requiere pruebas cruzadas antes de afirmar compatibilidad binaria o de sellos.
 
-## Fase C: prevalidación con simuladores de referencia
+## Fase C: simuladores de referencia
 
-Antes de consumir créditos de una QPU física, LIBEQG incorpora un contrato de prevalidación con tres referencias:
+La prevalidación usa dos backends locales obligatorios:
+- **Qiskit Aer CPU:** circuitos Bell y GHZ-3, con semilla fija y repetición del circuito Bell.
+- **CUDA-Q `qpp-cpu`:** los mismos invariantes, semilla fija y comprobación de repetibilidad.
 
-- **Qiskit Aer**: simulación local CPU de vectores de estado y modelos de ruido estándar. Las pruebas pasan una semilla fija a la opción seed_simulator.
-- **NVIDIA CUDA-Q**: simulación local cuando el backend de CPU está instalado y disponible. Las pruebas fijan la semilla mediante cudaq.set_random_seed.
-- **D-Wave Leap gate-model beta (DRsim_21qubits)**: integración remota mediante Ocean/dwave-gate, con prueba opt-in y credenciales autorizadas. No es una simulación local/offline; el acceso depende de la beta de Leap y podría consumir cuota de servicio. La API documentada no ofrece una semilla de simulación en el ejemplo público, por lo que la prueba valida resultados e invariantes, no conteos bit a bit reproducibles.
+No se exige que dos backends distintos produzcan conteos idénticos. Se validan invariantes físicos y tolerancias estadísticas. Estos probes no alteran ni sustituyen la carga de trabajo QPU fija de LIBEQG.
 
-La Fase C valida invariantes de referencia (por ejemplo, que el circuito Bell ideal sólo produzca 00 o 11) y repetibilidad donde el backend expone una semilla. No presupone que los tres simuladores compartan el mismo modelo de ruido ni que sus conteos sean idénticos. El ground truth debe etiquetarse por circuito, modo ideal/ruidoso, backend y versión. Los probes de referencia no modifican el testbench QPU inmutable de producción.
-
-Instalación opcional para Aer:
-```bash
-python -m pip install -e '.[test,phase-c-aer]'
-pytest -v
-```
-
-Instalación opcional para CUDA-Q:
-```bash
-python -m pip install -e '.[test,phase-c-cudaq]'
-pytest -v
-```
-
-La prueba de D-Wave se excluye por defecto. Para habilitarla, instalar el SDK y configurar acceso beta autorizado:
-```bash
-python -m pip install -e '.[test,phase-c-dwave]'
-LIBEQG_ENABLE_DWAVE_BETA=1 pytest -v tests/test_phase_c_simulators.py::test_phase_c_06_dwave_leap_beta_bell_smoke
-```
-
-## Estado de esta entrega
-
-La implementación incluye cifrado envolvente local AES-256-GCM + RSA-OAEP-SHA256, manifiestos canónicos firmados Ed25519, cadena de eventos firmada y sustitución atómica del índice. La firma Python es el módulo de referencia actual; la interoperabilidad con sellos de la crate Rust CSG no se debe afirmar hasta ejecutar pruebas cruzadas con esa implementación.
-
-La prueba fija está definida en src/libeqg/benchmark.py. Los proveedores aportan configuración de conexión y precios declarados; no pueden modificar la carga de trabajo. Las métricas que la API del proveedor no exponga deben quedar como no disponibles, no inventarse.
-
-## Instalar y probar
-
-```bash
-python -m pip install -e '.[test]'
-pytest
-```
+**D-Wave Leap gate-model beta** es un servicio remoto, no un simulador local/offline. Se mantiene desactivado por defecto; no se instala, no se contacta y no consume cuota en el inicio rápido. Cualquier prueba remota debe activarse de forma explícita, con acceso beta autorizado y revisión separada.
 
 ## Crear claves del cliente
 
 ```bash
 libeqg keygen --private ~/.libeqg/private.pem --public ~/.libeqg/public.pem
-chmod 600 ~/.libeqg/private.pem
 ```
 
-La clave privada no debe subirse al repositorio ni enviarse al proveedor. En producción, protegerla con frase de paso o almacén seguro del sistema operativo. Perderla sin una copia de recuperación implica perder acceso a los resultados envueltos con su clave pública.
+Protege la clave privada y no la subas al repositorio. Perderla sin copia de recuperación puede impedir descifrar los resultados cifrados para esa clave.
 
 ## Política del índice
 
-- Una entrada por combinación provider_id::service_id.
+- Una entrada por combinación `provider_id::service_id`.
 - Sólo se actualiza con manifiesto firmado válido, cadena de eventos válida, autorización explícita de publicación y corrida válida.
-- Escritura en archivo temporal + os.replace para sustitución atómica.
+- Escritura en archivo temporal y sustitución atómica.
 - El índice no guarda reportes cifrados, claves ni historiales de corridas.
-- Los informes y la evidencia completa se quedan localmente con el usuario.
+- Los informes y la evidencia completa permanecen localmente con el usuario.
 
-## Limitaciones conocidas
+## Alcance y limitaciones
 
-Este repositorio no afirma todavía compatibilidad de ejecución con todas las QPU ni una medición universal de fidelidad/costo: eso requiere adaptadores concretos por proveedor y definición común de métricas. El índice local es un prototipo; el índice comunitario requiere un punto de publicación compartido, control de concurrencia y validación del lado servidor sin almacenar historiales. El temporizador de 15 segundos debe implementarse en el publicador/servicio de índice para coalescer actualizaciones por proveedor/servicio; no es una propiedad criptográfica.
+Esta librería no afirma compatibilidad de ejecución con todas las QPU ni una medición universal de fidelidad/costo. Eso requiere adaptadores concretos por proveedor y una definición común de métricas. El índice actual es local; un índice comunitario requerirá punto de publicación compartido, control de concurrencia y validación del lado servidor sin conservar historiales públicos.
+
+La suite de simuladores valida la prevalidación local; **no certifica por sí sola una QPU física, la integración Rust de CSG ni todos los adaptadores de proveedor**.
