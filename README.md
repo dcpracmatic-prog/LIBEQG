@@ -6,7 +6,7 @@ Librería gratuita para ejecutar una prueba QPU fija, comprobar referencias loca
 
 ## Inicio rápido: clonar y ejecutar una sola orden
 
-Requisito previo: Python 3.10 o posterior y conexión a Internet para descargar dependencias.
+Requisito previo: Python 3.11 o 3.12 y conexión a Internet para descargar dependencias. CUDA-Q depende de plataforma; para la validación completa usa un entorno Linux compatible. En otros sistemas el script informa el backend como BLOCKED en vez de declarar un falso PASS.
 
 ```bash
 git clone https://github.com/dcpracmatic-prog/LIBEQG.git
