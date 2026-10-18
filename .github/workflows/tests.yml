@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install CUDA-Q CPU test dependencies
+      - name: Install CUDA-Q CPU test dependencies (cudaq)
         run: python -m pip install -e ".[test,phase-c-cudaq]"
       - name: Execute CUDA-Q qpp-cpu integration test
         run: python -m pytest -v tests/test_phase_c_simulators.py::test_cudaq_executes_on_qpp_cpu_when_installed
